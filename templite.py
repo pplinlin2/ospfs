@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+python_source = '''
 def render_function(context):
 	result = []
 	c_name = context['name']
@@ -12,5 +13,9 @@ def render_function(context):
 	append_result(c_date)
 
 	return ''.join(result)
+'''
 
-print render_function({'name': 'Jair', 'date': 'Thursday'})
+global_namespace = {}
+exec(python_source, global_namespace)
+
+print global_namespace['render_function']({'name': 'Jair', 'date': 'Thursday'})
