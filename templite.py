@@ -7,10 +7,15 @@ class CodeBuilder:
 		self.indent_level = indent
 
 	def __str__(self):
-		return ''.join(c for c in self.code)
+		return ''.join(str(c) for c in self.code)
 
 	def add_line(self, line):
 		self.code.append(' ' * self.indent_level + line + '\n')
+
+	def add_section(self):
+		section = CodeBuilder(self.indent_level)
+		self.code.append(section)
+		return section
 
 	INDENT_STEP = 4
 
@@ -32,9 +37,9 @@ class Templite():
 		code = CodeBuilder()
 		code.add_line('def render_function(context):')
 		code.indent()
+		vars_all = set()
+		vars_code = code.add_section()
 		code.add_line('result = []')
-		code.add_line('c_name = context["name"]')
-		code.add_line('c_date = context["date"]')
 		code.add_line('append_result = result.append')
 		code.add_line('extend_result = result.extend')
 
@@ -42,8 +47,12 @@ class Templite():
 		for token in tokens:
 			if token.startswith('{{'):
 				code.add_line('append_result({})'.format('c_' + token[2:-2]))
+				vars_all.add(token[2:-2])
 			else:
 				code.add_line('append_result({})'.format(repr(token)))
+
+		for var in vars_all:
+			vars_code.add_line('c_{} = context["{}"]'.format(var, var))
 
 		code.add_line('return "".join(result)')
 		code.dedent()
