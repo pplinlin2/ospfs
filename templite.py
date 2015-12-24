@@ -1,21 +1,40 @@
 #!/usr/bin/env python
 
-python_source = '''
-def render_function(context):
-	result = []
-	c_name = context['name']
-	c_date = context['date']
-	append_result = result.append
-	extend_result = result.extend
-	append_result('Hello, ')
-	append_result(c_name)
-	append_result('. Today is ')
-	append_result(c_date)
+class CodeBuilder:
+	def __init__(self, indent=0):
+		self.code = []
+		self.indent_level = indent
 
-	return ''.join(result)
-'''
+	def __str__(self):
+		return ''.join(c for c in self.code)
+
+	def add_line(self, line):
+		self.code.append(' ' * self.indent_level + line + '\n')
+
+	INDENT_STEP = 4
+
+	def indent(self):
+		self.indent_level += self.INDENT_STEP
+
+	def dedent(self):
+		self.indent_level -= self.INDENT_STEP
+
+code = CodeBuilder()
+code.add_line('def render_function(context):')
+code.indent()
+code.add_line('result = []')
+code.add_line('c_name = context["name"]')
+code.add_line('c_date = context["date"]')
+code.add_line('append_result = result.append')
+code.add_line('extend_result = result.extend')
+code.add_line('append_result("Hello, ")')
+code.add_line('append_result(c_name)')
+code.add_line('append_result(". Today is ")')
+code.add_line('append_result(c_date)')
+code.add_line('return "".join(result)')
+code.dedent()
 
 global_namespace = {}
-exec(python_source, global_namespace)
+exec(str(code), global_namespace)
 
 print global_namespace['render_function']({'name': 'Jair', 'date': 'Thursday'})
