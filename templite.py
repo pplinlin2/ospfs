@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import re
 
 class CodeBuilder:
 	def __init__(self, indent=0):
@@ -25,8 +26,9 @@ class CodeBuilder:
 		exec(str(self), global_namespace)
 		return global_namespace
 
+
 class Templite():
-	def __init__(self):
+	def __init__(self, text):
 		code = CodeBuilder()
 		code.add_line('def render_function(context):')
 		code.indent()
@@ -35,10 +37,14 @@ class Templite():
 		code.add_line('c_date = context["date"]')
 		code.add_line('append_result = result.append')
 		code.add_line('extend_result = result.extend')
-		code.add_line('append_result("Hello, ")')
-		code.add_line('append_result(c_name)')
-		code.add_line('append_result(". Today is ")')
-		code.add_line('append_result(c_date)')
+
+		tokens = re.split(r"(?s)({{.*?}}|{%.*?%}|{#.*?#})", text)
+		for token in tokens:
+			if token.startswith('{{'):
+				code.add_line('append_result({})'.format('c_' + token[2:-2]))
+			else:
+				code.add_line('append_result({})'.format(repr(token)))
+
 		code.add_line('return "".join(result)')
 		code.dedent()
 		self._render_function = code.get_globals()['render_function']
@@ -46,4 +52,4 @@ class Templite():
 	def render(self, context):
 		return self._render_function(context)
 
-print Templite().render({'name': 'Jair', 'date': 'Thursday'})
+print Templite('Hello, {{name}}. Today is {{date}}.').render({'name': 'Jair', 'date': 'Thursday'})
